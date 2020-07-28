@@ -2,6 +2,7 @@ import os
 import sys
 import hashlib
 from pathlib import Path
+from tqdm import tqdm
 
 
 def hash_file(path, bits=16):
@@ -17,7 +18,7 @@ def hash_file(path, bits=16):
 
 def find_duplicates(base_directory, duplicate_dict={}):
     file_list = [path for path in Path(base_directory).rglob("*") if path.is_file()]
-    for filename in file_list:
+    for filename in tqdm(file_list):
         file_hash = hash_file(filename)
         if file_hash in duplicate_dict:
             duplicate_dict[file_hash].append(str(filename))
