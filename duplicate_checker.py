@@ -44,7 +44,7 @@ def delete_copies(duplicate_file_list):
     for duplicates_files in tqdm(duplicate_file_list):
         duplicates_files = duplicates_files.sort(key=os.path.getmtime, reverse=keep_new)
         # Only delete if file suffix is the same for both duplicates
-        if len({Path(path).suffix() if Path(path).suffix() else os.path.basename(path)} for path in duplicates_files) == 1:
+        if len({Path(path).suffix() if Path(path).suffix() else os.path.basename(path) for path in duplicates_files}) == 1:
             print('----------')
             for duplicate in duplicates_files[1:]:
                 if delete_all:
