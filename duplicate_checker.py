@@ -40,19 +40,44 @@ def print_results(duplicate_dict):
 
 def delete_copies(duplicate_file_list):
     keep_new = str(input("When deleting duplicates, should new or old files be kept? (new/OLD) ")).lower() == "new"
-    delete_all = str(input("Would you like to delete all newer copies found? BE VERY CAREFUL! (y/N) ")).lower() == "y"
-    for duplicates_files in tqdm(duplicate_file_list):
-        duplicates_files.sort(key=os.path.getmtime, reverse=keep_new)
-        # Only delete if file suffix is the same for both duplicates
-        if len({os.path.splitext(path)[1] if os.path.splitext(path)[1] else os.path.basename(path) for path in duplicates_files}) == 1:
-            print('----------')
-            for duplicate in duplicates_files[1:]:
-                if delete_all:
-                    _delete(duplicate)
-                elif str(input("Would you like to delete file '%s'? (y/N) " % duplicate)).lower() == "y":
-                    _delete(duplicate)
-                else:
-                    print("Skipping file '%s'" % duplicate)
+    ignore_different_extentions = str(input("Would you like to delete duplicates with different extentions? (y/N)")).lower() == "y"
+    ignore_different_directories = str(input("Would you like to delete the duplicates even if they are in different directories? (y/N)")).lower() == "y"
+    delete_all = str(input("Would you like to delete all %ser copies found? BE VERY CAREFUL! (y/N)" %("new" if keep_new else "old"))).lower() == "y"
+    for duplicate_files in tqdm(duplicate_file_list):
+        if not ignore_different_directories or not ignore_different_extentions:
+            list_of_info_that_should_be_unique = [
+                f"{'' if ignore_different_directories else Path(path).parent}{'' if ignore_different_extentions else Path(path).suffix}"
+                for path in duplicate_files
+                ]
+            separated_duplicate_files = split_duplicates(duplicate_files, list_of_info_that_should_be_unique)
+        else:
+            separated_duplicate_files = [duplicate_files]
+        for duplicates in separated_duplicate_files:
+            delete_duplicates(duplicates, keep_new, delete_all)
+        
+
+def delete_duplicates(duplicate_files, keep_new, delete_all):
+    duplicate_files.sort(key=os.path.getmtime, reverse=keep_new)
+    # Only delete if file suffix is the same for both duplicates
+    if len({os.path.splitext(path)[1] if os.path.splitext(path)[1] else os.path.basename(path) for path in duplicate_files}) == 1:
+        print('----------')
+        for duplicate in duplicate_files[1:]:
+            if delete_all:
+                _delete(duplicate)
+            elif str(input("Would you like to delete file '%s'? (y/N) " % duplicate)).lower() == "y":
+                _delete(duplicate)
+            else:
+                print("Skipping file '%s'" % duplicate)
+
+def split_duplicates(duplicates, list_of_info_that_should_be_unique):
+    unique_info = set(list_of_info_that_should_be_unique)
+    output_duplicate_lists = []
+    if len(unique_info) != len(list_of_info_that_should_be_unique):
+        for unique in unique_info:
+            if list_of_info_that_should_be_unique.count(unique) > 1:
+                output_duplicate_lists.append(
+                    [duplicates[i] for i, unq in enumerate(list_of_info_that_should_be_unique) if unq == unique])
+    return output_duplicate_lists
 
 def _delete(filepath):
     # time = os.path.getmtime(filepath)
