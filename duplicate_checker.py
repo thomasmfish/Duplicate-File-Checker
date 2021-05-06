@@ -21,9 +21,9 @@ def find_duplicates(base_directory, duplicate_dict={}):
     for filename in tqdm(file_list):
         file_hash = hash_file(filename)
         if file_hash in duplicate_dict:
-            duplicate_dict[file_hash].append(str(filename))
+            duplicate_dict[file_hash].add(str(filename))
         else:
-            duplicate_dict[file_hash] = [str(filename)]
+            duplicate_dict[file_hash] = {str(filename)}
     return duplicate_dict
 
 def print_results(duplicate_dict):
