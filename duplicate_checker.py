@@ -17,6 +17,11 @@ def hash_file(path, bits=16):
 
 
 def find_duplicates(base_directory, duplicate_dict={}):
+    if duplicate_dict:
+        # Convert to sets to avoid having the same filepath being added twice:
+        for key, value in duplicate_dict.items():
+            duplicate_dict[key] = set(value)
+    
     file_list = [path for path in Path(base_directory).rglob("*") if path.is_file()]
     for filename in tqdm(file_list):
         file_hash = hash_file(filename)
@@ -24,6 +29,11 @@ def find_duplicates(base_directory, duplicate_dict={}):
             duplicate_dict[file_hash].add(str(filename))
         else:
             duplicate_dict[file_hash] = {str(filename)}
+
+    # Convert to lists (required for saving):
+    for key, value in duplicate_dict.items():
+        duplicate_dict[key] = list(value)
+        
     return duplicate_dict
 
 def print_results(duplicate_dict):
